@@ -69,6 +69,20 @@
   .tab-content.active { display: block; }
 
   .note { font-size: 11px; color: #555; margin-top: 8px; padding: 0 4px; }
+
+  /* Legend collapsible */
+  details.legend-box { background: #1a1d27; border: 1px solid #2e3347; border-radius: 8px; margin-bottom: 16px; }
+  details.legend-box summary { padding: 10px 16px; font-size: 12px; font-weight: 600; color: #8b8fa8; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
+  details.legend-box summary::-webkit-details-marker { display: none; }
+  details.legend-box summary::before { content: '▶'; font-size: 9px; color: #6c8fff; transition: transform .2s; }
+  details.legend-box[open] summary::before { transform: rotate(90deg); }
+  details.legend-box summary:hover { color: #c0c4d8; }
+  .legend-content { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 14px; }
+  .legend-section h4 { font-size: 11px; color: #6c8fff; font-weight: 700; margin-bottom: 8px; }
+  .legend-table { border-collapse: collapse; font-size: 11px; width: 100%; }
+  .legend-table td { padding: 3px 10px 3px 0; color: #b0b0b0; vertical-align: top; }
+  .legend-table td:first-child { color: #e0e0e0; font-weight: 600; white-space: nowrap; min-width: 60px; }
+  .legend-divider { border: none; border-top: 1px solid #2e3347; margin: 8px 0; }
 </style>
 </head>
 <body>
@@ -95,6 +109,36 @@
 </nav>
 
 <div class="container">
+
+  <!-- 레벨 기준 & 지표 정의 -->
+  <details class="legend-box">
+    <summary>레벨 기준 &amp; 지표 정의</summary>
+    <div class="legend-content">
+      <div class="legend-section">
+        <h4>과금 레벨 기준 (지난 30일 UC 충전량)</h4>
+        <table class="legend-table">
+          <tr><td>Lv_0</td><td>0 UC &nbsp;<span style="color:#555">(Last month, purchased before)</span></td></tr>
+          <tr><td>Lv_1</td><td>1 UC ~ 1,200 UC</td></tr>
+          <tr><td>Lv_2</td><td>1,201 UC ~ 3,000 UC</td></tr>
+          <tr><td>Lv_3</td><td>3,001 UC ~ 6,000 UC</td></tr>
+          <tr><td>Lv_4</td><td>6,001 UC ~ 18,000 UC</td></tr>
+          <tr><td>Lv_5</td><td>18,001 UC ~ 30,000 UC</td></tr>
+          <tr><td>Lv_6</td><td>30,001 UC ~ 60,000 UC</td></tr>
+          <tr><td>Lv_7</td><td>60,001 UC ~</td></tr>
+        </table>
+      </div>
+      <div class="legend-section">
+        <h4>지표 정의</h4>
+        <table class="legend-table">
+          <tr><td>Repay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales &gt; 0)</td></tr>
+          <tr><td>Return Pay</td><td>(M-n Sales &gt; 0, n ≥ 2) AND (M-1 Sales = 0) AND (M+0 Sales &gt; 0)</td></tr>
+          <tr><td>Churn Pay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales = 0)</td></tr>
+          <hr class="legend-divider">
+          <tr><td>ARPPU</td><td>Revenue ÷ BU</td></tr>
+        </table>
+      </div>
+    </div>
+  </details>
 
   <!-- 검증 안내 -->
   <div class="verify-box">
