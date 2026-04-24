@@ -9,14 +9,26 @@ DATABRICKS_TOKEN = os.environ["DATABRICKS_TOKEN"]
 WAREHOUSE_ID = "98481282e9f1b19c"
 
 def run_query(sql):
+    import time
     r = requests.post(
         f"{DATABRICKS_HOST}/api/2.0/sql/statements",
         headers={"Authorization": f"Bearer {DATABRICKS_TOKEN}"},
-        json={"statement": sql, "warehouse_id": WAREHOUSE_ID, "wait_timeout": "120s"},
+        json={"statement": sql, "warehouse_id": WAREHOUSE_ID, "wait_timeout": "50s"},
         verify=False
     )
     r.raise_for_status()
     d = r.json()
+    # Poll if still running
+    while d.get("status", {}).get("state") in ("PENDING", "RUNNING"):
+        time.sleep(5)
+        stmt_id = d["statement_id"]
+        r = requests.get(
+            f"{DATABRICKS_HOST}/api/2.0/sql/statements/{stmt_id}",
+            headers={"Authorization": f"Bearer {DATABRICKS_TOKEN}"},
+            verify=False
+        )
+        r.raise_for_status()
+        d = r.json()
     if d.get("status", {}).get("state") == "FAILED":
         raise RuntimeError(d["status"]["error"]["message"])
     cols = [c["name"] for c in d["manifest"]["schema"]["columns"]]
@@ -29,9 +41,13 @@ WITH base AS (
     CASE WHEN YEAR(std_dt) < 2024 THEN DATE_FORMAT(std_dt,'yyyy-MM')
          ELSE DATE_FORMAT(ADD_MONTHS(std_dt,-1),'yyyy-MM') END AS month,
     pay_amt_tag AS lv,
-    BU, NBU, Repay, Churn_Pay,
+    BU, NBU, Repay, Return_Pay, Churn_Pay,
     Revenue, NBU_Revenue, Repay_Revenue, Return_Pay_Revenue,
-    ARPPU, NBU_Revenue_Rate, Repay_Revenue_Rate, ReturnPay_Revenue_Rate, NBU_Rate,
+    ARPPU,
+    CASE WHEN Revenue > 0 THEN ROUND(NBU_Revenue / Revenue * 100, 2) ELSE NULL END AS NBU_Revenue_Rate,
+    CASE WHEN Revenue > 0 THEN ROUND(Repay_Revenue / Revenue * 100, 2) ELSE NULL END AS Repay_Revenue_Rate,
+    CASE WHEN Revenue > 0 THEN ROUND(Return_Pay_Revenue / Revenue * 100, 2) ELSE NULL END AS ReturnPay_Revenue_Rate,
+    CASE WHEN BU > 0 THEN ROUND(NBU / BU * 100, 2) ELSE NULL END AS NBU_Rate,
     ROW_NUMBER() OVER (
       PARTITION BY country,
         CASE WHEN YEAR(std_dt)<2024 THEN DATE_FORMAT(std_dt,'yyyy-MM')
