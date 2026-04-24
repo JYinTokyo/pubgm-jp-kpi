@@ -70,6 +70,11 @@
 
   .note { font-size: 11px; color: #555; margin-top: 8px; padding: 0 4px; }
 
+  /* Chart metric definitions */
+  .chart-defs { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #2e3347; }
+  .chart-defs span { font-size: 10px; color: #666; line-height: 1.4; }
+  .chart-defs span b { font-weight: 700; }
+
   /* Legend collapsible */
   details.legend-box { background: #1a1d27; border: 1px solid #2e3347; border-radius: 8px; margin-bottom: 16px; }
   details.legend-box summary { padding: 10px 16px; font-size: 12px; font-weight: 600; color: #8b8fa8; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
@@ -194,7 +199,13 @@
     <div class="charts-grid">
       <div class="chart-box"><h3>BU 추이</h3><canvas id="ch-ov-bu"></canvas></div>
       <div class="chart-box"><h3>Revenue 추이 (UC)</h3><canvas id="ch-ov-rev"></canvas></div>
-      <div class="chart-box"><h3>NBU / Repay / Churn 추이 (전체 합산)</h3><canvas id="ch-ov-type"></canvas></div>
+      <div class="chart-box"><h3>NBU / Repay / Churn 추이 (전체 합산)</h3><canvas id="ch-ov-type"></canvas>
+        <div class="chart-defs">
+          <span><b style="color:#6c8fff">NBU</b> — 해당 월 첫 결제 유저</span>
+          <span><b style="color:#00c853">Repay</b> — 전월 결제 &amp; 당월 결제</span>
+          <span><b style="color:#ff6b6b">Churn Pay</b> — 전월 결제 → 당월 미결제 (이탈)</span>
+        </div>
+      </div>
       <div class="chart-box"><h3>ARPPU 추이 (UC)</h3><canvas id="ch-ov-arppu"></canvas></div>
     </div>
 
