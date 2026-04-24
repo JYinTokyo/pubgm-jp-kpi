@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUBGM JP Monthly KPI by Pay Level</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1117; color: #e0e0e0; font-size: 13px; }
+
+  header { background: linear-gradient(135deg, #1a1d27, #252836); padding: 18px 30px 14px; border-bottom: 1px solid #2e3347; }
+  header h1 { font-size: 19px; font-weight: 700; color: #fff; }
+  .header-meta { font-size: 11px; color: #666; margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .badge { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+  .badge-verified { background: #00c85322; color: #00c853; border: 1px solid #00c85344; }
+  .badge-warn    { background: #ff444422; color: #ff6666;  border: 1px solid #ff444444; }
+  .badge-info    { background: #6c8fff22; color: #6c8fff;  border: 1px solid #6c8fff44; }
+
+  /* Verify callout */
+  .verify-box { background: #00c85308; border: 1px solid #00c85330; border-radius: 8px; padding: 10px 16px; margin-bottom: 18px; font-size: 12px; }
+  .verify-box strong { color: #00c853; }
+  .verify-box table { margin-top: 7px; border-collapse: collapse; }
+  .verify-box td { padding: 3px 14px 3px 0; color: #b0b0b0; }
+  .verify-box td:first-child { color: #6c8fff; font-weight: 600; min-width: 70px; }
+  .verify-match { color: #00c853 !important; font-weight: 700 !important; }
+
+  nav.main { display: flex; background: #1a1d27; border-bottom: 1px solid #2e3347; padding: 0 30px; }
+  nav.main button { background: none; border: none; color: #8b8fa8; padding: 11px 16px; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; transition: all .2s; }
+  nav.main button.active, nav.main button:hover { color: #6c8fff; border-bottom-color: #6c8fff; }
+
+  .container { padding: 20px 30px; }
+
+  /* Year filter */
+  .filter-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-bar label { font-size: 11px; color: #666; }
+  .yr-btn { border-radius: 20px; padding: 4px 14px; font-size: 12px; cursor: pointer; border: 1px solid #2e3347; background: #1a1d27; color: #8b8fa8; transition: all .15s; }
+  .yr-btn.active { border-color: #6c8fff; color: #6c8fff; background: #6c8fff18; }
+  .sep { width: 1px; height: 18px; background: #2e3347; margin: 0 4px; }
+  .lv-btn { border-radius: 20px; padding: 4px 12px; font-size: 12px; cursor: pointer; border: 1px solid #2e3347; background: #1a1d27; color: #8b8fa8; transition: all .15s; }
+  .lv-btn.active { border-color: var(--c); color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .card { background: #1a1d27; border: 1px solid #2e3347; border-radius: 10px; padding: 14px 18px; }
+  .card .label { font-size: 11px; color: #8b8fa8; margin-bottom: 5px; }
+  .card .value { font-size: 21px; font-weight: 700; color: #fff; }
+  .card .sub { font-size: 11px; color: #6c8fff; margin-top: 3px; }
+
+  /* Charts */
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .chart-box { background: #1a1d27; border: 1px solid #2e3347; border-radius: 10px; padding: 14px; }
+  .chart-box h3 { font-size: 12px; font-weight: 600; color: #c0c4d8; margin-bottom: 10px; }
+  .chart-box canvas { max-height: 210px; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; background: #1a1d27; border: 1px solid #2e3347; border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { background: #13151f; color: #8b8fa8; padding: 8px 11px; text-align: right; border-bottom: 1px solid #2e3347; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+  thead th:first-child { text-align: left; }
+  tbody tr:hover { background: #ffffff07; }
+  tbody td { padding: 6px 11px; text-align: right; border-bottom: 1px solid #1a1c28; white-space: nowrap; }
+  tbody td:first-child { text-align: left; }
+  .verified-row td:first-child::after { content: ' ✓'; color: #00c853; font-size: 10px; }
+  .verified-row { background: #00c85306 !important; }
+  .churn-row td { background: #13151f; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .note { font-size: 11px; color: #555; margin-top: 8px; padding: 0 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PUBGM JP — Monthly KPI by Pay Level</h1>
+  <div class="header-meta">
+    <span>Source: pubgm_mart.monthly_saleslevel_stat</span>
+    <span class="badge badge-info">JP only</span>
+    <span class="badge badge-verified">2023-03 Tableau 검증 완료</span>
+    <span class="badge badge-warn">2025-12 누락</span>
+    <span class="badge badge-warn">2026-03 미집계</span>
+    <span style="color:#444">추출일: 2026-04-23</span>
+  </div>
+</header>
+
+<nav class="main">
+  <button class="active" onclick="switchTab('overview',this)">개요</button>
+  <button onclick="switchTab('bu',this)">BU 추이</button>
+  <button onclick="switchTab('revenue',this)">Revenue 추이</button>
+  <button onclick="switchTab('arppu',this)">ARPPU 추이</button>
+  <button onclick="switchTab('uc',this)">UC소비 &amp; 점유율</button>
+  <button onclick="switchTab('table',this)">전체 테이블</button>
+</nav>
+
+<div class="container">
+
+  <!-- 검증 안내 -->
+  <div class="verify-box">
+    <strong>데이터 정확성 검증 — 2023-03 JP (Tableau 기준)</strong>
+    <table>
+      <tr>
+        <td>Lv_1 BU</td>
+        <td>CSV: 11,425</td><td class="verify-match">DB: 11,425 ✓</td>
+        <td style="padding-left:20px">Lv_4 Revenue</td>
+        <td>CSV: 39,543,381 UC</td><td class="verify-match">DB: 39,543,381 UC ✓</td>
+      </tr>
+      <tr>
+        <td>Lv_7 BU</td>
+        <td>CSV: 378</td><td class="verify-match">DB: 378 ✓</td>
+        <td style="padding-left:20px">Lv_7 ARPPU</td>
+        <td>CSV: 106,458.84 UC</td><td class="verify-match">DB: 106,458.84 UC ✓</td>
+      </tr>
+      <tr>
+        <td>Non-Paid Churn</td>
+        <td>CSV: 10,564</td><td class="verify-match">DB: 10,564 ✓</td>
+        <td style="padding-left:20px">Lv_1 ARPPU</td>
+        <td>CSV: 394.35 UC</td><td class="verify-match">DB: 394.35 UC ✓</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Overview Tab -->
+  <div id="tab-overview" class="tab-content active">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yr="2023" onclick="toggleYr(this)">2023</button>
+      <button class="yr-btn active" data-yr="2024" onclick="toggleYr(this)">2024</button>
+      <button class="yr-btn active" data-yr="2025" onclick="toggleYr(this)">2025</button>
+      <button class="yr-btn active" data-yr="2026" onclick="toggleYr(this)">2026</button>
+      <div class="sep"></div>
+      <label>레벨:</label>
+      <button class="lv-btn active" style="--c:#6c8fff" data-lv="Lv_1" onclick="toggleLv(this)">Lv_1</button>
+      <button class="lv-btn active" style="--c:#4ecdc4" data-lv="Lv_2" onclick="toggleLv(this)">Lv_2</button>
+      <button class="lv-btn active" style="--c:#45b7d1" data-lv="Lv_3" onclick="toggleLv(this)">Lv_3</button>
+      <button class="lv-btn active" style="--c:#f7931a" data-lv="Lv_4" onclick="toggleLv(this)">Lv_4</button>
+      <button class="lv-btn active" style="--c:#ff6b6b" data-lv="Lv_5" onclick="toggleLv(this)">Lv_5</button>
+      <button class="lv-btn active" style="--c:#c678dd" data-lv="Lv_6" onclick="toggleLv(this)">Lv_6</button>
+      <button class="lv-btn active" style="--c:#e5c07b" data-lv="Lv_7" onclick="toggleLv(this)">Lv_7</button>
+    </div>
+
+    <div class="cards">
+      <div class="card"><div class="label">최대 월 BU 합계</div><div class="value" id="c-bu">-</div><div class="sub" id="c-bu-m">-</div></div>
+      <div class="card"><div class="label">최대 월 총 Revenue</div><div class="value" id="c-rev">-</div><div class="sub" id="c-rev-m">-</div></div>
+      <div class="card"><div class="label">최고 Lv_7 ARPPU</div><div class="value" id="c-arppu">-</div><div class="sub" id="c-arppu-m">-</div></div>
+      <div class="card"><div class="label">평균 월 Churn_Pay</div><div class="value" id="c-churn">-</div><div class="sub">Non-Paid 전환 (필터 기준)</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-box"><h3>BU 추이</h3><canvas id="ch-ov-bu"></canvas></div>
+      <div class="chart-box"><h3>Revenue 추이 (UC)</h3><canvas id="ch-ov-rev"></canvas></div>
+      <div class="chart-box"><h3>NBU / Repay / Churn 추이 (전체 합산)</h3><canvas id="ch-ov-type"></canvas></div>
+      <div class="chart-box"><h3>ARPPU 추이 (UC)</h3><canvas id="ch-ov-arppu"></canvas></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Month</th><th style="text-align:left">Level</th>
+          <th>BU</th><th>BU%</th><th>NBU</th><th>NBU%</th>
+          <th>Repay</th><th>Churn_Pay</th>
+          <th>Revenue (UC)</th><th>NBU Rev%</th><th>Repay Rev%</th>
+          <th>ARPPU (UC)</th>
+        </tr></thead>
+        <tbody id="ov-tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">※ 2023-03 행: Tableau CSV 값과 전수 일치 확인 완료 | Revenue/ARPPU 단위: UC</p>
+  </div>
+
+  <!-- BU Tab -->
+  <div id="tab-bu" class="tab-content">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'bu')">2023</button>
+      <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'bu')">2024</button>
+      <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'bu')">2025</button>
+      <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'bu')">2026</button>
+    </div>
+    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 BU 추이</h3><canvas id="ch-bu" style="max-height:280px"></canvas></div>
+    <div class="table-wrap"><table><thead><tr id="bu-head"></tr></thead><tbody id="bu-tbody"></tbody></table></div>
+  </div>
+
+  <!-- Revenue Tab -->
+  <div id="tab-revenue" class="tab-content">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'rev')">2023</button>
+      <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'rev')">2024</button>
+      <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'rev')">2025</button>
+      <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'rev')">2026</button>
+    </div>
+    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 Revenue 추이 (UC)</h3><canvas id="ch-rev" style="max-height:280px"></canvas></div>
+    <div class="table-wrap"><table><thead><tr id="rev-head"></tr></thead><tbody id="rev-tbody"></tbody></table></div>
+  </div>
+
+  <!-- ARPPU Tab -->
+  <div id="tab-arppu" class="tab-content">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'arppu')">2023</button>
+      <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'arppu')">2024</button>
+      <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'arppu')">2025</button>
+      <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'arppu')">2026</button>
+    </div>
+    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 ARPPU 추이 (UC)</h3><canvas id="ch-arppu" style="max-height:280px"></canvas></div>
+    <div class="table-wrap"><table><thead><tr id="arppu-head"></tr></thead><tbody id="arppu-tbody"></tbody></table></div>
+  </div>
+
+  <!-- UC소비 & 점유율 Tab -->
+  <div id="tab-uc" class="tab-content">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yruc="2023" onclick="toggleYrUC(this)">2023</button>
+      <button class="yr-btn active" data-yruc="2024" onclick="toggleYrUC(this)">2024</button>
+      <button class="yr-btn active" data-yruc="2025" onclick="toggleYrUC(this)">2025</button>
+      <button class="yr-btn active" data-yruc="2026" onclick="toggleYrUC(this)">2026</button>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-box"><h3>충전 BU 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-bu-share" style="max-height:260px"></canvas></div>
+      <div class="chart-box"><h3>Revenue(충전) 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-rev-share" style="max-height:260px"></canvas></div>
+    </div>
+    <div class="chart-box" style="margin-bottom:14px"><h3>UC 소비 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-uc-share" style="max-height:260px"></canvas></div>
+    <p style="font-size:11px;color:#6c8fff;font-weight:700;margin-bottom:6px">충전 BU 점유율 (%)</p>
+    <div class="table-wrap" style="margin-bottom:14px">
+      <table><thead><tr id="bu-share-head"></tr></thead><tbody id="bu-share-tbody"></tbody></table>
+    </div>
+    <p style="font-size:11px;color:#f7931a;font-weight:700;margin-bottom:6px">Revenue(충전) 점유율 (%)</p>
+    <div class="table-wrap" style="margin-bottom:14px">
+      <table><thead><tr id="rev-share-head"></tr></thead><tbody id="rev-share-tbody"></tbody></table>
+    </div>
+    <p style="font-size:11px;color:#4ecdc4;font-weight:700;margin-bottom:6px">UC 소비 점유율 (%)</p>
+    <div class="table-wrap" style="margin-bottom:14px">
+      <table><thead><tr id="uc-share-head"></tr></thead><tbody id="uc-share-tbody"></tbody></table>
+    </div>
+    <div class="chart-box" style="margin-bottom:14px"><h3>UC 소비량 추이 (UC)</h3><canvas id="ch-uc-abs" style="max-height:260px"></canvas></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="uc-head"></tr></thead>
+        <tbody id="uc-tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">※ BU%·Revenue(충전)% 출처: pubgm_mart.monthly_saleslevel_stat | UC소비% 출처: pubgm_bi.bu_uc_usage_info_monthly | 2025-12 및 2026-03은 UC소비 데이터만 존재</p>
+  </div>
+
+  <!-- Full Table -->
+  <div id="tab-table" class="tab-content">
+    <div class="filter-bar">
+      <label>연도:</label>
+      <button class="yr-btn active" data-yr3="2023" onclick="toggleYr3(this)">2023</button>
+      <button class="yr-btn active" data-yr3="2024" onclick="toggleYr3(this)">2024</button>
+      <button class="yr-btn active" data-yr3="2025" onclick="toggleYr3(this)">2025</button>
+      <button class="yr-btn active" data-yr3="2026" onclick="toggleYr3(this)">2026</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Month</th><th style="text-align:left">Level</th>
+          <th>BU</th><th>NBU</th><th>NBU%</th><th>Repay</th><th>Churn_Pay</th>
+          <th>Revenue</th><th>NBU_Rev</th><th>Repay_Rev</th><th>RetPay_Rev</th>
+          <th>NBU_Rev%</th><th>Repay_Rev%</th><th>RetPay_Rev%</th><th>ARPPU</th>
+        </tr></thead>
+        <tbody id="full-tbody"></tbody>
+      </table>
+    </div>
+    <p class="note">※ Revenue / ARPPU 단위: UC | ✓ 표시 월: 2023-03, Tableau CSV 값과 전수 일치</p>
+  </div>
+
+</div>
+
+<script>
+// ====== DATA ======
+// cols: 0=month, 1=lv, 2=BU, 3=NBU, 4=Repay, 5=Churn,
+//       6=Rev, 7=NBURev, 8=RepayRev, 9=RetPay, 10=ARPPU,
+//       11=NBURevR, 12=RepayRevR, 13=RetPayRevR, 14=NBURate
+// __RAW_DATA__
+
+// __UC_DATA__
+const UC_ALL_MONTHS = Object.keys(UC_USAGE).sort();
+
+const VERIFIED_MONTH = "2023-03";
+const LV_COLORS = {"Lv_1":"#6c8fff","Lv_2":"#4ecdc4","Lv_3":"#45b7d1","Lv_4":"#f7931a","Lv_5":"#ff6b6b","Lv_6":"#c678dd","Lv_7":"#e5c07b"};
+const PAID_LVS = ["Lv_1","Lv_2","Lv_3","Lv_4","Lv_5","Lv_6","Lv_7"];
+const ALL_MONTHS = [...new Set(RAW.map(r=>r[0]))].sort();
+
+let activeYrsUC = new Set(["2023","2024","2025","2026"]);
+let activeYrs = new Set(["2023","2024","2025","2026"]);
+let activeLvs = new Set(PAID_LVS);
+let activeYrs2 = { bu: new Set(["2023","2024","2025","2026"]), rev: new Set(["2023","2024","2025","2026"]), arppu: new Set(["2023","2024","2025","2026"]) };
+let activeYrs3 = new Set(["2023","2024","2025","2026"]);
+
+function fmt(n, d=0) { if(n==null||isNaN(n)) return '-'; return Number(n).toLocaleString('ko-KR',{maximumFractionDigits:d}); }
+function pct(n) { return n==null?'-':n.toFixed(2)+'%'; }
+
+function filteredMonths() { return ALL_MONTHS.filter(m => activeYrs.has(m.substring(0,4))); }
+function filteredMonthsUC() { return UC_ALL_MONTHS.filter(m => activeYrsUC.has(m.substring(0,4))); }
+function getUC(m, lv) { const d=UC_USAGE[m]; return d ? d[PAID_LVS.indexOf(lv)] : null; }
+function filteredMonths2(tab) { return ALL_MONTHS.filter(m => activeYrs2[tab].has(m.substring(0,4))); }
+function filteredMonths3() { return ALL_MONTHS.filter(m => activeYrs3.has(m.substring(0,4))); }
+
+function getVal(m, lv, col) { const r=RAW.find(x=>x[0]===m&&x[1]===lv); return r?r[col]:null; }
+
+let charts = {};
+function mkChart(id, type, labels, datasets, yFmt) {
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, { type, data:{labels,datasets}, options:{
+    responsive:true, maintainAspectRatio:true,
+    plugins:{legend:{labels:{color:'#8b8fa8',boxWidth:10,font:{size:11}}}},
+    scales:{
+      x:{ticks:{color:'#555',font:{size:9},maxRotation:45},grid:{color:'#1a1c28'}},
+      y:{ticks:{color:'#555',font:{size:10},callback:yFmt||undefined},grid:{color:'#1a1c28'}}
+    }
+  }});
+}
+function ds(lv, months, col) {
+  return { label:lv, data:months.map(m=>getVal(m,lv,col)),
+    borderColor:LV_COLORS[lv], backgroundColor:LV_COLORS[lv]+'18',
+    tension:0.3, pointRadius:2, fill:false, borderWidth:2 };
+}
+
+// ===== Cards =====
+function fillCards() {
+  const ms = filteredMonths();
+  const lvs = [...activeLvs];
+  const buByM = ms.map(m=>({m, v:lvs.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[2]:0);},0)}));
+  if(buByM.length){const mx=buByM.reduce((a,b)=>b.v>a.v?b:a); document.getElementById('c-bu').textContent=fmt(mx.v); document.getElementById('c-bu-m').textContent=mx.m;}
+  const revByM = ms.map(m=>({m, v:lvs.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[6]:0);},0)}));
+  if(revByM.length){const mx=revByM.reduce((a,b)=>b.v>a.v?b:a); document.getElementById('c-rev').textContent=fmt(mx.v); document.getElementById('c-rev-m').textContent=mx.m;}
+  const lv7=RAW.filter(r=>r[1]==="Lv_7"&&r[10]&&activeYrs.has(r[0].substring(0,4)));
+  if(lv7.length){const mx=lv7.reduce((a,b)=>b[10]>a[10]?b:a); document.getElementById('c-arppu').textContent=fmt(mx[10],0)+' UC'; document.getElementById('c-arppu-m').textContent=mx[0];}
+  const churns=RAW.filter(r=>r[1]==="Non-Paid"&&activeYrs.has(r[0].substring(0,4))).map(r=>r[5]);
+  if(churns.length){document.getElementById('c-churn').textContent=fmt(Math.round(churns.reduce((a,b)=>a+b,0)/churns.length));}
+}
+
+// ===== Overview Table =====
+function renderOvTable() {
+  const ms = filteredMonths();
+  let html='', prev='';
+  for(const m of ms){
+    const isVerified = m===VERIFIED_MONTH;
+    const yr = m.substring(0,4);
+    // year separator
+    if(m.substring(0,4) !== prev.substring(0,4) && prev!=''){
+      html+=`<tr><td colspan="12" style="background:#13151f;color:#6c8fff;font-size:11px;font-weight:700;padding:5px 11px">── ${yr} ──</td></tr>`;
+    }
+    // BU total for this month (all 7 levels, for BU% computation)
+    const totalBU = PAID_LVS.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[2]:0);},0);
+    let firstInMonth = true;
+    for(const lv of PAID_LVS){
+      if(!activeLvs.has(lv)) continue;
+      const r = RAW.find(x=>x[0]===m&&x[1]===lv);
+      if(!r) continue;
+      const buPct = totalBU>0?(r[2]/totalBU*100).toFixed(1)+'%':'-';
+      html += `<tr class="${isVerified?'verified-row':''}">
+        <td style="color:${firstInMonth?(isVerified?'#00c853':'#c0c4d8'):'#333'}">${firstInMonth?m:''}</td>
+        <td style="color:${LV_COLORS[lv]};font-weight:700;text-align:left">${lv}</td>
+        <td>${fmt(r[2])}</td><td style="color:#8b8fa8;font-size:11px">${buPct}</td><td>${fmt(r[3])}</td><td>${pct(r[14])}</td>
+        <td>${fmt(r[4])}</td><td>-</td>
+        <td>${fmt(r[6])}</td><td>${pct(r[11])}</td><td>${pct(r[12])}</td>
+        <td>${fmt(r[10],0)}</td>
+      </tr>`;
+      firstInMonth = false;
+    }
+    // Churn row
+    const np = RAW.find(x=>x[0]===m&&x[1]==="Non-Paid");
+    if(np) html+=`<tr class="churn-row"><td></td><td style="color:#ff6b6b;font-size:11px">Churn_Pay</td><td></td><td></td><td></td><td></td><td></td><td style="color:#ff6b6b">${fmt(np[5])}</td><td colspan="4"></td></tr>`;
+    prev=m;
+  }
+  document.getElementById('ov-tbody').innerHTML = html;
+}
+
+function updateOvCharts() {
+  const ms = filteredMonths();
+  const lvs = PAID_LVS.filter(l=>activeLvs.has(l));
+  mkChart('ch-ov-bu','line',ms,lvs.map(l=>ds(l,ms,2)));
+  mkChart('ch-ov-rev','line',ms,lvs.map(l=>ds(l,ms,6)),v=>fmt(v/1e6,1)+'M');
+  const nbu=ms.map(m=>PAID_LVS.filter(l=>activeLvs.has(l)).reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[3]:0);},0));
+  const repay=ms.map(m=>PAID_LVS.filter(l=>activeLvs.has(l)).reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[4]:0);},0));
+  const churn=ms.map(m=>{const r=RAW.find(x=>x[0]===m&&x[1]==="Non-Paid");return r?r[5]:0;});
+  mkChart('ch-ov-type','line',ms,[
+    {label:'NBU',data:nbu,borderColor:'#6c8fff',tension:0.3,pointRadius:2,fill:false,borderWidth:2},
+    {label:'Repay',data:repay,borderColor:'#4ecdc4',tension:0.3,pointRadius:2,fill:false,borderWidth:2},
+    {label:'Churn_Pay',data:churn,borderColor:'#ff6b6b',tension:0.3,pointRadius:2,fill:false,borderWidth:2,borderDash:[4,4]},
+  ]);
+  mkChart('ch-ov-arppu','line',ms,lvs.map(l=>ds(l,ms,10)),v=>fmt(v/1000,0)+'K');
+}
+
+// ===== Cross tables =====
+function buildCross(headId, tbodyId, ms, col, fmtFn) {
+  document.getElementById(headId).innerHTML = '<th>Month</th>'+PAID_LVS.map(l=>`<th style="color:${LV_COLORS[l]}">${l}</th>`).join('')+'<th>Total</th><th style="color:#ff6b6b">Churn_Pay</th>';
+  let html='', prev='';
+  for(const m of ms){
+    const yr=m.substring(0,4);
+    if(yr!==prev&&prev){html+=`<tr><td colspan="10" style="background:#13151f;color:#6c8fff;font-size:11px;font-weight:700;padding:5px 11px">── ${yr} ──</td></tr>`;}
+    const vals=PAID_LVS.map(l=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return r?r[col]:null;});
+    const tot=vals.reduce((s,v)=>s+(v||0),0);
+    const np=RAW.find(r=>r[0]===m&&r[1]==="Non-Paid");
+    const isV=m===VERIFIED_MONTH;
+    html+=`<tr style="${isV?'background:#00c85306':''}"><td style="${isV?'color:#00c853':''}">${isV?'✓ ':''} ${m}</td>${vals.map(v=>`<td>${fmtFn(v)}</td>`).join('')}<td><b>${fmtFn(tot)}</b></td><td style="color:#ff6b6b">${np?fmt(np[5]):'-'}</td></tr>`;
+    prev=yr;
+  }
+  document.getElementById(tbodyId).innerHTML=html;
+}
+
+// ===== Full table =====
+function renderFullTable() {
+  const ms = filteredMonths3();
+  let html='', prev='';
+  for(const m of ms){
+    const yr=m.substring(0,4);
+    if(yr!==prev&&prev){html+=`<tr><td colspan="15" style="background:#13151f;color:#6c8fff;font-size:11px;font-weight:700;padding:5px 11px">── ${yr} ──</td></tr>`;}
+    const isV=m===VERIFIED_MONTH;
+    let first=true;
+    for(const lv of PAID_LVS){
+      const r=RAW.find(x=>x[0]===m&&x[1]===lv);
+      if(!r) continue;
+      html+=`<tr style="${isV?'background:#00c85306':''}">
+        <td style="color:${first?(isV?'#00c853':'#c0c4d8'):'#333'}">${first?(isV?'✓ '+m:m):''}</td>
+        <td style="color:${LV_COLORS[lv]};font-weight:700;text-align:left">${lv}</td>
+        <td>${fmt(r[2])}</td><td>${fmt(r[3])}</td><td>${pct(r[14])}</td><td>${fmt(r[4])}</td><td>-</td>
+        <td>${fmt(r[6])}</td><td>${fmt(r[7])}</td><td>${fmt(r[8])}</td><td>${fmt(r[9])}</td>
+        <td>${pct(r[11])}</td><td>${pct(r[12])}</td><td>${pct(r[13])}</td><td>${fmt(r[10],0)}</td>
+      </tr>`;
+      first=false;
+    }
+    const np=RAW.find(x=>x[0]===m&&x[1]==="Non-Paid");
+    if(np) html+=`<tr style="background:#13151f"><td></td><td style="color:#ff6b6b;font-size:11px">Churn_Pay</td><td colspan="4" style="color:#ff6b6b">${fmt(np[5])}</td><td colspan="9"></td></tr>`;
+    prev=yr;
+  }
+  document.getElementById('full-tbody').innerHTML=html;
+}
+
+// ===== UC Tab =====
+function renderUCTab() {
+  const ms = filteredMonthsUC();
+
+  // --- 100% stacked bar: BU share ---
+  const buShareDS = PAID_LVS.map(lv => {
+    const data = ms.map(m => {
+      const tot = PAID_LVS.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[2]:0);},0);
+      const r = RAW.find(x=>x[0]===m&&x[1]===lv);
+      return tot>0 ? +((r?r[2]:0)/tot*100).toFixed(2) : 0;
+    });
+    return { label:lv, data, backgroundColor:LV_COLORS[lv]+'cc', borderColor:LV_COLORS[lv], borderWidth:1 };
+  });
+  if(charts['ch-bu-share']) charts['ch-bu-share'].destroy();
+  charts['ch-bu-share'] = new Chart(document.getElementById('ch-bu-share').getContext('2d'), {
+    type:'bar', data:{labels:ms,datasets:buShareDS},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{labels:{color:'#8b8fa8',boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#555',font:{size:9},maxRotation:45},grid:{color:'#1a1c28'}},
+        y:{stacked:true,max:100,ticks:{color:'#555',font:{size:10},callback:v=>v+'%'},grid:{color:'#1a1c28'}}
+      }}
+  });
+
+  // --- 100% stacked bar: Revenue share ---
+  const revShareDS = PAID_LVS.map(lv => {
+    const data = ms.map(m => {
+      const tot = PAID_LVS.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[6]:0);},0);
+      const r = RAW.find(x=>x[0]===m&&x[1]===lv);
+      return tot>0 ? +((r?r[6]:0)/tot*100).toFixed(2) : 0;
+    });
+    return { label:lv, data, backgroundColor:LV_COLORS[lv]+'cc', borderColor:LV_COLORS[lv], borderWidth:1 };
+  });
+  if(charts['ch-rev-share']) charts['ch-rev-share'].destroy();
+  charts['ch-rev-share'] = new Chart(document.getElementById('ch-rev-share').getContext('2d'), {
+    type:'bar', data:{labels:ms,datasets:revShareDS},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{labels:{color:'#8b8fa8',boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#555',font:{size:9},maxRotation:45},grid:{color:'#1a1c28'}},
+        y:{stacked:true,max:100,ticks:{color:'#555',font:{size:10},callback:v=>v+'%'},grid:{color:'#1a1c28'}}
+      }}
+  });
+
+  // --- 100% stacked bar: UC share ---
+  const ucShareDS = PAID_LVS.map(lv => {
+    const data = ms.map(m => {
+      const tot = PAID_LVS.reduce((s,l)=>s+(getUC(m,l)||0),0);
+      return tot>0 ? +((getUC(m,lv)||0)/tot*100).toFixed(2) : 0;
+    });
+    return { label:lv, data, backgroundColor:LV_COLORS[lv]+'cc', borderColor:LV_COLORS[lv], borderWidth:1 };
+  });
+  if(charts['ch-uc-share']) charts['ch-uc-share'].destroy();
+  charts['ch-uc-share'] = new Chart(document.getElementById('ch-uc-share').getContext('2d'), {
+    type:'bar', data:{labels:ms,datasets:ucShareDS},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{labels:{color:'#8b8fa8',boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#555',font:{size:9},maxRotation:45},grid:{color:'#1a1c28'}},
+        y:{stacked:true,max:100,ticks:{color:'#555',font:{size:10},callback:v=>v+'%'},grid:{color:'#1a1c28'}}
+      }}
+  });
+
+  // --- Line chart: UC absolute amounts ---
+  mkChart('ch-uc-abs','line',ms, PAID_LVS.map(lv=>({
+    label:lv, data:ms.map(m=>getUC(m,lv)),
+    borderColor:LV_COLORS[lv], backgroundColor:LV_COLORS[lv]+'18',
+    tension:0.3, pointRadius:2, fill:false, borderWidth:2
+  })), v=>fmt(v/1e6,1)+'M');
+
+  // --- Share cross tables (BU% / Rev% / UC%) ---
+  let buHtml='', revHtml='', ucShareHtml='', prev='';
+  for(const m of ms){
+    const yr=m.substring(0,4);
+    const buTot = PAID_LVS.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[2]:0);},0);
+    const revTot = PAID_LVS.reduce((s,l)=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return s+(r?r[6]:0);},0);
+    const ucTot = PAID_LVS.reduce((s,l)=>s+(getUC(m,l)||0),0);
+    const hasKPI = buTot>0;
+    const isV = m===VERIFIED_MONTH;
+    const sep = `<tr><td colspan="9" style="background:#13151f;color:#6c8fff;font-size:11px;font-weight:700;padding:5px 11px">── ${yr} ──</td></tr>`;
+    if(yr!==prev&&prev) { buHtml+=sep; revHtml+=sep; ucShareHtml+=sep; }
+    // BU% row
+    buHtml+=`<tr style="${isV?'background:#00c85306':''}">
+      <td style="color:${isV?'#00c853':'#c0c4d8'}">${isV?'✓ ':''} ${m}</td>
+      ${PAID_LVS.map(l=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return `<td>${hasKPI?((r?r[2]:0)/buTot*100).toFixed(1)+'%':'-'}</td>`;}).join('')}
+      <td><b>${hasKPI?fmt(buTot):'-'}</b></td>
+    </tr>`;
+    // Rev% row
+    revHtml+=`<tr style="${isV?'background:#00c85306':''}">
+      <td style="color:${isV?'#00c853':'#c0c4d8'}">${isV?'✓ ':''} ${m}</td>
+      ${PAID_LVS.map(l=>{const r=RAW.find(x=>x[0]===m&&x[1]===l);return `<td>${hasKPI?((r?r[6]:0)/revTot*100).toFixed(1)+'%':'-'}</td>`;}).join('')}
+      <td><b>${hasKPI?fmt(revTot/1e6,1)+'M':'-'}</b></td>
+    </tr>`;
+    // UC% row
+    ucShareHtml+=`<tr>
+      <td style="color:${isV?'#00c853':'#c0c4d8'}">${isV?'✓ ':''} ${m}</td>
+      ${PAID_LVS.map(l=>`<td>${ucTot>0?((getUC(m,l)||0)/ucTot*100).toFixed(1)+'%':'-'}</td>`).join('')}
+      <td><b>${fmt(ucTot/1e6,1)}M</b></td>
+    </tr>`;
+    prev=yr;
+  }
+  const shareHead = '<th>Month</th>'+PAID_LVS.map(l=>`<th style="color:${LV_COLORS[l]}">${l}</th>`).join('')+'<th>Total</th>';
+  document.getElementById('bu-share-head').innerHTML = shareHead;
+  document.getElementById('bu-share-tbody').innerHTML = buHtml;
+  document.getElementById('rev-share-head').innerHTML = shareHead;
+  document.getElementById('rev-share-tbody').innerHTML = revHtml;
+  document.getElementById('uc-share-head').innerHTML = shareHead;
+  document.getElementById('uc-share-tbody').innerHTML = ucShareHtml;
+
+  // --- UC amount cross table ---
+  document.getElementById('uc-head').innerHTML =
+    '<th>Month</th>'+PAID_LVS.map(l=>`<th style="color:${LV_COLORS[l]}">${l}</th>`).join('')+'<th>Total (M)</th>';
+  let ucHtml=''; prev='';
+  for(const m of ms){
+    const yr=m.substring(0,4);
+    if(yr!==prev&&prev) ucHtml+=`<tr><td colspan="9" style="background:#13151f;color:#6c8fff;font-size:11px;font-weight:700;padding:5px 11px">── ${yr} ──</td></tr>`;
+    const vals=PAID_LVS.map(l=>getUC(m,l));
+    const tot=vals.reduce((s,v)=>s+(v||0),0);
+    const noKPI = !RAW.find(x=>x[0]===m&&x[1]==="Lv_1");
+    ucHtml+=`<tr style="${noKPI?'background:#1e1a2a':''}">
+      <td style="color:${m===VERIFIED_MONTH?'#00c853':(noKPI?'#c678dd':'#c0c4d8')}">${m===VERIFIED_MONTH?'✓ ':''} ${m}${noKPI?' <span style="font-size:10px;color:#c678dd">(UC only)</span>':''}</td>
+      ${vals.map(v=>`<td>${v!=null?fmt(v):'-'}</td>`).join('')}
+      <td><b>${fmt(tot/1e6,1)}M</b></td>
+    </tr>`;
+    prev=yr;
+  }
+  document.getElementById('uc-tbody').innerHTML=ucHtml;
+}
+
+function toggleYrUC(btn) {
+  const yr=btn.dataset.yruc;
+  if(activeYrsUC.has(yr)){activeYrsUC.delete(yr);btn.classList.remove('active');}else{activeYrsUC.add(yr);btn.classList.add('active');}
+  renderUCTab();
+}
+
+// ===== Toggles =====
+function toggleYr(btn) {
+  const yr=btn.dataset.yr;
+  if(activeYrs.has(yr)){activeYrs.delete(yr);btn.classList.remove('active');}else{activeYrs.add(yr);btn.classList.add('active');}
+  fillCards(); renderOvTable(); updateOvCharts();
+}
+function toggleLv(btn) {
+  const lv=btn.dataset.lv;
+  if(activeLvs.has(lv)){activeLvs.delete(lv);btn.classList.remove('active');}else{activeLvs.add(lv);btn.classList.add('active');}
+  renderOvTable(); updateOvCharts();
+}
+function toggleYr2(btn, tab) {
+  const yr=btn.dataset.yr2;
+  if(activeYrs2[tab].has(yr)){activeYrs2[tab].delete(yr);btn.classList.remove('active');}else{activeYrs2[tab].add(yr);btn.classList.add('active');}
+  refreshTab(tab);
+}
+function toggleYr3(btn) {
+  const yr=btn.dataset.yr3;
+  if(activeYrs3.has(yr)){activeYrs3.delete(yr);btn.classList.remove('active');}else{activeYrs3.add(yr);btn.classList.add('active');}
+  renderFullTable();
+}
+
+// ===== Tab switch =====
+function refreshTab(name) {
+  const ms2=filteredMonths2(name);
+  if(name==='bu'){
+    buildCross('bu-head','bu-tbody',ms2,2,v=>fmt(v));
+    mkChart('ch-bu','line',ms2,PAID_LVS.map(l=>ds(l,ms2,2)));
+  }
+  if(name==='rev'){
+    buildCross('rev-head','rev-tbody',ms2,6,v=>fmt(v));
+    mkChart('ch-rev','line',ms2,PAID_LVS.map(l=>ds(l,ms2,6)),v=>fmt(v/1e6,1)+'M');
+  }
+  if(name==='arppu'){
+    buildCross('arppu-head','arppu-tbody',ms2,10,v=>v?fmt(v,0):'-');
+    mkChart('ch-arppu','line',ms2,PAID_LVS.map(l=>ds(l,ms2,10)),v=>fmt(v/1000,0)+'K');
+  }
+}
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('nav.main button').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='table') renderFullTable();
+  else if(name==='uc') renderUCTab();
+  else if(['bu','revenue','arppu'].includes(name)) refreshTab(name==='revenue'?'rev':name);
+}
+
+// ===== Init =====
+fillCards(); renderOvTable(); updateOvCharts();
+</script>
+</body>
+</html>
