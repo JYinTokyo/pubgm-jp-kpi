@@ -9,6 +9,18 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1117; color: #e0e0e0; font-size: 13px; }
 
+  /* Password overlay */
+  #pw-overlay { position: fixed; inset: 0; background: #0f1117; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+  #pw-overlay.hidden { display: none; }
+  .pw-box { background: #1a1d27; border: 1px solid #2e3347; border-radius: 12px; padding: 36px 40px; width: 340px; text-align: center; }
+  .pw-box h2 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .pw-box p { font-size: 12px; color: #666; margin-bottom: 24px; }
+  .pw-box input { width: 100%; background: #13151f; border: 1px solid #2e3347; border-radius: 6px; padding: 10px 14px; color: #e0e0e0; font-size: 14px; outline: none; text-align: center; letter-spacing: 2px; }
+  .pw-box input:focus { border-color: #6c8fff; }
+  .pw-box button { margin-top: 12px; width: 100%; background: #6c8fff; border: none; border-radius: 6px; padding: 10px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .pw-box button:hover { background: #8aa3ff; }
+  .pw-error { color: #ff6b6b; font-size: 11px; margin-top: 8px; min-height: 16px; }
+
   header { background: linear-gradient(135deg, #1a1d27, #252836); padding: 18px 30px 14px; border-bottom: 1px solid #2e3347; }
   header h1 { font-size: 19px; font-weight: 700; color: #fff; }
   .header-meta { font-size: 11px; color: #666; margin-top: 5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -91,6 +103,36 @@
 </style>
 </head>
 <body>
+
+<!-- Password overlay -->
+<div id="pw-overlay">
+  <div class="pw-box">
+    <h2>PUBGM JP KPI Dashboard</h2>
+    <p>접근 비밀번호를 입력하세요</p>
+    <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button onclick="checkPw()">확인</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if(sessionStorage.getItem('kpi_auth')==='1'){
+    document.getElementById('pw-overlay').classList.add('hidden');
+  }
+})();
+function checkPw(){
+  const val = document.getElementById('pw-input').value;
+  if(val === 'PUBGMjapan2026'){
+    sessionStorage.setItem('kpi_auth','1');
+    document.getElementById('pw-overlay').classList.add('hidden');
+  } else {
+    document.getElementById('pw-error').textContent = '비밀번호가 틀렸습니다.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+</script>
 
 <header>
   <h1>PUBGM JP — Monthly KPI by Pay Level</h1>
