@@ -26,7 +26,7 @@
   .verify-box td:first-child { color: #6c8fff; font-weight: 600; min-width: 70px; }
   .verify-match { color: #00c853 !important; font-weight: 700 !important; }
 
-  nav.main { display: flex; background: #1a1d27; border-bottom: 1px solid #2e3347; padding: 0 30px; }
+  nav.main { display: flex; background: #1a1d27; border-bottom: 1px solid #2e3347; padding: 0 30px; align-items: center; }
   nav.main button { background: none; border: none; color: #8b8fa8; padding: 11px 16px; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent; transition: all .2s; }
   nav.main button.active, nav.main button:hover { color: #6c8fff; border-bottom-color: #6c8fff; }
 
@@ -76,6 +76,11 @@
   .chart-defs span { font-size: 10px; color: #666; line-height: 1.4; }
   .chart-defs span b { font-weight: 700; }
 
+  /* Lang toggle */
+  .lang-toggle { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .lang-btn { background: #1a1d27; border: 1px solid #2e3347; border-radius: 4px; color: #8b8fa8; font-size: 12px; padding: 4px 10px; cursor: pointer; transition: all .15s; }
+  .lang-btn.active { border-color: #6c8fff; color: #6c8fff; background: #6c8fff18; }
+
   /* Legend collapsible */
   details.legend-box { background: #1a1d27; border: 1px solid #2e3347; border-radius: 8px; margin-bottom: 16px; }
   details.legend-box summary { padding: 10px 16px; font-size: 12px; font-weight: 600; color: #8b8fa8; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; user-select: none; }
@@ -99,30 +104,34 @@
   <div class="header-meta">
     <span>Source: pubgm_mart.monthly_saleslevel_stat</span>
     <span class="badge badge-info">JP only</span>
-    <span class="badge badge-verified">2023-03 Tableau 검증 완료</span>
-    
-    
-    <span style="color:#444">추출일: 2026-04-24</span>
+    <span class="badge badge-verified" data-i18n="header.badge.verified">2023-03 Tableau 검증 완료</span>
+
+
+    <span style="color:#444"><span data-i18n="header.date">추출일:</span> 2026-04-24</span>
   </div>
 </header>
 
 <nav class="main">
-  <button class="active" onclick="switchTab('overview',this)">개요</button>
-  <button onclick="switchTab('bu',this)">BU 추이</button>
-  <button onclick="switchTab('revenue',this)">Revenue 추이</button>
-  <button onclick="switchTab('arppu',this)">ARPPU 추이</button>
-  <button onclick="switchTab('uc',this)">UC소비 &amp; 점유율</button>
-  <button onclick="switchTab('table',this)">전체 테이블</button>
+  <button class="active" onclick="switchTab('overview',this)" data-i18n="tab.overview">개요</button>
+  <button onclick="switchTab('bu',this)" data-i18n="tab.bu">BU 추이</button>
+  <button onclick="switchTab('revenue',this)" data-i18n="tab.revenue">Revenue 추이</button>
+  <button onclick="switchTab('arppu',this)" data-i18n="tab.arppu">ARPPU 추이</button>
+  <button onclick="switchTab('uc',this)" data-i18n="tab.uc">UC소비 &amp; 점유율</button>
+  <button onclick="switchTab('table',this)" data-i18n="tab.table">전체 테이블</button>
+  <div class="lang-toggle" style="margin-left:auto">
+    <button class="lang-btn active" id="btn-ko" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" id="btn-ja" onclick="setLang('ja')">日本語</button>
+  </div>
 </nav>
 
 <div class="container">
 
   <!-- 레벨 기준 & 지표 정의 -->
   <details class="legend-box">
-    <summary>레벨 기준 &amp; 지표 정의</summary>
+    <summary data-i18n="legend.title">레벨 기준 &amp; 지표 정의</summary>
     <div class="legend-content">
       <div class="legend-section">
-        <h4>과금 레벨 기준 (지난 30일 UC 충전량)</h4>
+        <h4 data-i18n="legend.lv.title">과금 레벨 기준 (지난 30일 UC 충전량)</h4>
         <table class="legend-table">
           <tr><td>Lv_0</td><td>0 UC &nbsp;<span style="color:#555">(Last month, purchased before)</span></td></tr>
           <tr><td>Lv_1</td><td>1 UC ~ 1,200 UC</td></tr>
@@ -135,11 +144,11 @@
         </table>
       </div>
       <div class="legend-section">
-        <h4>지표 정의</h4>
+        <h4 data-i18n="legend.metric.title">지표 정의</h4>
         <table class="legend-table">
           <tr><td>Repay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales &gt; 0)</td></tr>
           <tr><td>Return Pay</td><td>(M-n Sales &gt; 0, n ≥ 2) AND (M-1 Sales = 0) AND (M+0 Sales &gt; 0)</td></tr>
-          <tr><td>Churn Pay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales = 0) — 과금 이탈</td></tr>
+          <tr><td>Churn Pay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales = 0) — <span data-i18n="legend.churn.def">과금 이탈</span></td></tr>
           <hr class="legend-divider">
           <tr><td>ARPPU</td><td>Revenue ÷ BU</td></tr>
         </table>
@@ -149,7 +158,7 @@
 
   <!-- 검증 안내 -->
   <div class="verify-box">
-    <strong>데이터 정확성 검증 — 2023-03 JP (Tableau 기준)</strong>
+    <strong data-i18n="verify.title">데이터 정확성 검증 — 2023-03 JP (Tableau 기준)</strong>
     <table>
       <tr>
         <td>Lv_1 BU</td>
@@ -175,13 +184,13 @@
   <!-- Overview Tab -->
   <div id="tab-overview" class="tab-content active">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yr="2023" onclick="toggleYr(this)">2023</button>
       <button class="yr-btn active" data-yr="2024" onclick="toggleYr(this)">2024</button>
       <button class="yr-btn active" data-yr="2025" onclick="toggleYr(this)">2025</button>
       <button class="yr-btn active" data-yr="2026" onclick="toggleYr(this)">2026</button>
       <div class="sep"></div>
-      <label>레벨:</label>
+      <label data-i18n="filter.level">레벨:</label>
       <button class="lv-btn active" style="--c:#6c8fff" data-lv="Lv_1" onclick="toggleLv(this)">Lv_1</button>
       <button class="lv-btn active" style="--c:#4ecdc4" data-lv="Lv_2" onclick="toggleLv(this)">Lv_2</button>
       <button class="lv-btn active" style="--c:#45b7d1" data-lv="Lv_3" onclick="toggleLv(this)">Lv_3</button>
@@ -192,23 +201,23 @@
     </div>
 
     <div class="cards">
-      <div class="card"><div class="label">최대 월 BU 합계</div><div class="value" id="c-bu">-</div><div class="sub" id="c-bu-m">-</div></div>
-      <div class="card"><div class="label">최대 월 총 Revenue</div><div class="value" id="c-rev">-</div><div class="sub" id="c-rev-m">-</div></div>
-      <div class="card"><div class="label">최고 Lv_7 ARPPU</div><div class="value" id="c-arppu">-</div><div class="sub" id="c-arppu-m">-</div></div>
-      <div class="card"><div class="label">평균 월 Churn_Pay</div><div class="value" id="c-churn">-</div><div class="sub">Non-Paid 전환 (필터 기준)</div></div>
+      <div class="card"><div class="label" data-i18n="card.bu">최대 월 BU 합계</div><div class="value" id="c-bu">-</div><div class="sub" id="c-bu-m">-</div></div>
+      <div class="card"><div class="label" data-i18n="card.rev">최대 월 총 Revenue</div><div class="value" id="c-rev">-</div><div class="sub" id="c-rev-m">-</div></div>
+      <div class="card"><div class="label" data-i18n="card.arppu">최고 Lv_7 ARPPU</div><div class="value" id="c-arppu">-</div><div class="sub" id="c-arppu-m">-</div></div>
+      <div class="card"><div class="label" data-i18n="card.churn">평균 월 Churn_Pay</div><div class="value" id="c-churn">-</div><div class="sub" data-i18n="card.churn.sub">Non-Paid 전환 (필터 기준)</div></div>
     </div>
 
     <div class="charts-grid">
-      <div class="chart-box"><h3>BU 추이</h3><canvas id="ch-ov-bu"></canvas></div>
-      <div class="chart-box"><h3>Revenue 추이 (UC)</h3><canvas id="ch-ov-rev"></canvas></div>
-      <div class="chart-box"><h3>NBU / Repay / Churn 추이 (전체 합산)</h3><canvas id="ch-ov-type"></canvas>
+      <div class="chart-box"><h3 data-i18n="chart.ov.bu">BU 추이</h3><canvas id="ch-ov-bu"></canvas></div>
+      <div class="chart-box"><h3 data-i18n="chart.ov.rev">Revenue 추이 (UC)</h3><canvas id="ch-ov-rev"></canvas></div>
+      <div class="chart-box"><h3 data-i18n="chart.ov.type">NBU / Repay / Churn 추이 (전체 합산)</h3><canvas id="ch-ov-type"></canvas>
         <div class="chart-defs">
-          <span><b style="color:#6c8fff">NBU</b> — 해당 월 첫 결제 유저</span>
-          <span><b style="color:#00c853">Repay</b> — 전월 결제 &amp; 당월 결제</span>
-          <span><b style="color:#ff6b6b">Churn Pay</b> — 전월 결제 → 당월 미결제 (과금 이탈)</span>
+          <span data-i18n-html="chart.nbu.def"><b style="color:#6c8fff">NBU</b> — 해당 월 첫 결제 유저</span>
+          <span data-i18n-html="chart.repay.def"><b style="color:#00c853">Repay</b> — 전월 결제 &amp; 당월 결제</span>
+          <span data-i18n-html="chart.churn.def"><b style="color:#ff6b6b">Churn Pay</b> — 전월 결제 → 당월 미결제 (과금 이탈)</span>
         </div>
       </div>
-      <div class="chart-box"><h3>ARPPU 추이 (UC)</h3><canvas id="ch-ov-arppu"></canvas></div>
+      <div class="chart-box"><h3 data-i18n="chart.ov.arppu">ARPPU 추이 (UC)</h3><canvas id="ch-ov-arppu"></canvas></div>
     </div>
 
     <div class="table-wrap">
@@ -223,88 +232,88 @@
         <tbody id="ov-tbody"></tbody>
       </table>
     </div>
-    <p class="note">※ 2023-03 행: Tableau CSV 값과 전수 일치 확인 완료 | Revenue/ARPPU 단위: UC</p>
+    <p class="note" data-i18n="note.ov">※ 2023-03 행: Tableau CSV 값과 전수 일치 확인 완료 | Revenue/ARPPU 단위: UC</p>
   </div>
 
   <!-- BU Tab -->
   <div id="tab-bu" class="tab-content">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'bu')">2023</button>
       <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'bu')">2024</button>
       <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'bu')">2025</button>
       <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'bu')">2026</button>
     </div>
-    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 BU 추이</h3><canvas id="ch-bu" style="max-height:280px"></canvas></div>
+    <div class="chart-box" style="margin-bottom:14px"><h3 data-i18n="chart.bu.title">레벨별 BU 추이</h3><canvas id="ch-bu" style="max-height:280px"></canvas></div>
     <div class="table-wrap"><table><thead><tr id="bu-head"></tr></thead><tbody id="bu-tbody"></tbody></table></div>
   </div>
 
   <!-- Revenue Tab -->
   <div id="tab-revenue" class="tab-content">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'rev')">2023</button>
       <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'rev')">2024</button>
       <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'rev')">2025</button>
       <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'rev')">2026</button>
     </div>
-    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 Revenue 추이 (UC)</h3><canvas id="ch-rev" style="max-height:280px"></canvas></div>
+    <div class="chart-box" style="margin-bottom:14px"><h3 data-i18n="chart.rev.title">레벨별 Revenue 추이 (UC)</h3><canvas id="ch-rev" style="max-height:280px"></canvas></div>
     <div class="table-wrap"><table><thead><tr id="rev-head"></tr></thead><tbody id="rev-tbody"></tbody></table></div>
   </div>
 
   <!-- ARPPU Tab -->
   <div id="tab-arppu" class="tab-content">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yr2="2023" onclick="toggleYr2(this,'arppu')">2023</button>
       <button class="yr-btn active" data-yr2="2024" onclick="toggleYr2(this,'arppu')">2024</button>
       <button class="yr-btn active" data-yr2="2025" onclick="toggleYr2(this,'arppu')">2025</button>
       <button class="yr-btn active" data-yr2="2026" onclick="toggleYr2(this,'arppu')">2026</button>
     </div>
-    <div class="chart-box" style="margin-bottom:14px"><h3>레벨별 ARPPU 추이 (UC)</h3><canvas id="ch-arppu" style="max-height:280px"></canvas></div>
+    <div class="chart-box" style="margin-bottom:14px"><h3 data-i18n="chart.arppu.title">레벨별 ARPPU 추이 (UC)</h3><canvas id="ch-arppu" style="max-height:280px"></canvas></div>
     <div class="table-wrap"><table><thead><tr id="arppu-head"></tr></thead><tbody id="arppu-tbody"></tbody></table></div>
   </div>
 
   <!-- UC소비 & 점유율 Tab -->
   <div id="tab-uc" class="tab-content">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yruc="2023" onclick="toggleYrUC(this)">2023</button>
       <button class="yr-btn active" data-yruc="2024" onclick="toggleYrUC(this)">2024</button>
       <button class="yr-btn active" data-yruc="2025" onclick="toggleYrUC(this)">2025</button>
       <button class="yr-btn active" data-yruc="2026" onclick="toggleYrUC(this)">2026</button>
     </div>
     <div class="charts-grid">
-      <div class="chart-box"><h3>충전 BU 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-bu-share" style="max-height:260px"></canvas></div>
-      <div class="chart-box"><h3>Revenue(충전) 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-rev-share" style="max-height:260px"></canvas></div>
+      <div class="chart-box"><h3 data-i18n="chart.bu.share">충전 BU 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-bu-share" style="max-height:260px"></canvas></div>
+      <div class="chart-box"><h3 data-i18n="chart.rev.share">Revenue(충전) 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-rev-share" style="max-height:260px"></canvas></div>
     </div>
-    <div class="chart-box" style="margin-bottom:14px"><h3>UC 소비 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-uc-share" style="max-height:260px"></canvas></div>
-    <p style="font-size:11px;color:#6c8fff;font-weight:700;margin-bottom:6px">충전 BU 점유율 (%)</p>
+    <div class="chart-box" style="margin-bottom:14px"><h3 data-i18n="chart.uc.share">UC 소비 점유율 추이 (레벨별 % 구성)</h3><canvas id="ch-uc-share" style="max-height:260px"></canvas></div>
+    <p style="font-size:11px;color:#6c8fff;font-weight:700;margin-bottom:6px" data-i18n="label.bu.share">충전 BU 점유율 (%)</p>
     <div class="table-wrap" style="margin-bottom:14px">
       <table><thead><tr id="bu-share-head"></tr></thead><tbody id="bu-share-tbody"></tbody></table>
     </div>
-    <p style="font-size:11px;color:#f7931a;font-weight:700;margin-bottom:6px">Revenue(충전) 점유율 (%)</p>
+    <p style="font-size:11px;color:#f7931a;font-weight:700;margin-bottom:6px" data-i18n="label.rev.share">Revenue(충전) 점유율 (%)</p>
     <div class="table-wrap" style="margin-bottom:14px">
       <table><thead><tr id="rev-share-head"></tr></thead><tbody id="rev-share-tbody"></tbody></table>
     </div>
-    <p style="font-size:11px;color:#4ecdc4;font-weight:700;margin-bottom:6px">UC 소비 점유율 (%)</p>
+    <p style="font-size:11px;color:#4ecdc4;font-weight:700;margin-bottom:6px" data-i18n="label.uc.share">UC 소비 점유율 (%)</p>
     <div class="table-wrap" style="margin-bottom:14px">
       <table><thead><tr id="uc-share-head"></tr></thead><tbody id="uc-share-tbody"></tbody></table>
     </div>
-    <div class="chart-box" style="margin-bottom:14px"><h3>UC 소비량 추이 (UC)</h3><canvas id="ch-uc-abs" style="max-height:260px"></canvas></div>
+    <div class="chart-box" style="margin-bottom:14px"><h3 data-i18n="chart.uc.abs">UC 소비량 추이 (UC)</h3><canvas id="ch-uc-abs" style="max-height:260px"></canvas></div>
     <div class="table-wrap">
       <table>
         <thead><tr id="uc-head"></tr></thead>
         <tbody id="uc-tbody"></tbody>
       </table>
     </div>
-    <p class="note">※ BU%·Revenue(충전)% 출처: pubgm_mart.monthly_saleslevel_stat | UC소비% 출처: pubgm_bi.bu_uc_usage_info_monthly | 2025-12 및 2026-03은 UC소비 데이터만 존재</p>
+    <p class="note" data-i18n="note.uc">※ BU%·Revenue(충전)% 출처: pubgm_mart.monthly_saleslevel_stat | UC소비% 출처: pubgm_bi.bu_uc_usage_info_monthly | 2025-12 및 2026-03은 UC소비 데이터만 존재</p>
   </div>
 
   <!-- Full Table -->
   <div id="tab-table" class="tab-content">
     <div class="filter-bar">
-      <label>연도:</label>
+      <label data-i18n="filter.year">연도:</label>
       <button class="yr-btn active" data-yr3="2023" onclick="toggleYr3(this)">2023</button>
       <button class="yr-btn active" data-yr3="2024" onclick="toggleYr3(this)">2024</button>
       <button class="yr-btn active" data-yr3="2025" onclick="toggleYr3(this)">2025</button>
@@ -321,7 +330,7 @@
         <tbody id="full-tbody"></tbody>
       </table>
     </div>
-    <p class="note">※ Revenue / ARPPU 단위: UC | ✓ 표시 월: 2023-03, Tableau CSV 값과 전수 일치</p>
+    <p class="note" data-i18n="note.table">※ Revenue / ARPPU 단위: UC | ✓ 표시 월: 2023-03, Tableau CSV 값과 전수 일치</p>
   </div>
 
 </div>
@@ -1420,6 +1429,107 @@ function switchTab(name, el) {
   if(name==='table') renderFullTable();
   else if(name==='uc') renderUCTab();
   else if(['bu','revenue','arppu'].includes(name)) refreshTab(name==='revenue'?'rev':name);
+}
+
+// ===== i18n =====
+const I18N = {
+  ko: {
+    'tab.overview': '개요',
+    'tab.bu': 'BU 추이',
+    'tab.revenue': 'Revenue 추이',
+    'tab.arppu': 'ARPPU 추이',
+    'tab.uc': 'UC소비 & 점유율',
+    'tab.table': '전체 테이블',
+    'header.badge.verified': '2023-03 Tableau 검증 완료',
+    'header.date': '추출일:',
+    'legend.title': '레벨 기준 & 지표 정의',
+    'legend.lv.title': '과금 레벨 기준 (지난 30일 UC 충전량)',
+    'legend.metric.title': '지표 정의',
+    'legend.churn.def': '과금 이탈',
+    'verify.title': '데이터 정확성 검증 — 2023-03 JP (Tableau 기준)',
+    'filter.year': '연도:',
+    'filter.level': '레벨:',
+    'card.bu': '최대 월 BU 합계',
+    'card.rev': '최대 월 총 Revenue',
+    'card.arppu': '최고 Lv_7 ARPPU',
+    'card.churn': '평균 월 Churn_Pay',
+    'card.churn.sub': 'Non-Paid 전환 (필터 기준)',
+    'chart.ov.bu': 'BU 추이',
+    'chart.ov.rev': 'Revenue 추이 (UC)',
+    'chart.ov.type': 'NBU / Repay / Churn 추이 (전체 합산)',
+    'chart.nbu.def': '<b style="color:#6c8fff">NBU</b> — 해당 월 첫 결제 유저',
+    'chart.repay.def': '<b style="color:#00c853">Repay</b> — 전월 결제 &amp; 당월 결제',
+    'chart.churn.def': '<b style="color:#ff6b6b">Churn Pay</b> — 전월 결제 → 당월 미결제 (과금 이탈)',
+    'chart.ov.arppu': 'ARPPU 추이 (UC)',
+    'note.ov': '※ 2023-03 행: Tableau CSV 값과 전수 일치 확인 완료 | Revenue/ARPPU 단위: UC',
+    'chart.bu.title': '레벨별 BU 추이',
+    'chart.rev.title': '레벨별 Revenue 추이 (UC)',
+    'chart.arppu.title': '레벨별 ARPPU 추이 (UC)',
+    'chart.bu.share': '충전 BU 점유율 추이 (레벨별 % 구성)',
+    'chart.rev.share': 'Revenue(충전) 점유율 추이 (레벨별 % 구성)',
+    'chart.uc.share': 'UC 소비 점유율 추이 (레벨별 % 구성)',
+    'label.bu.share': '충전 BU 점유율 (%)',
+    'label.rev.share': 'Revenue(충전) 점유율 (%)',
+    'label.uc.share': 'UC 소비 점유율 (%)',
+    'chart.uc.abs': 'UC 소비량 추이 (UC)',
+    'note.uc': '※ BU%·Revenue(충전)% 출처: pubgm_mart.monthly_saleslevel_stat | UC소비% 출처: pubgm_bi.bu_uc_usage_info_monthly | 2025-12 및 2026-03은 UC소비 데이터만 존재',
+    'note.table': '※ Revenue / ARPPU 단위: UC | ✓ 표시 월: 2023-03, Tableau CSV 값과 전수 일치',
+  },
+  ja: {
+    'tab.overview': '概要',
+    'tab.bu': 'BU推移',
+    'tab.revenue': 'Revenue推移',
+    'tab.arppu': 'ARPPU推移',
+    'tab.uc': 'UC消費 & シェア',
+    'tab.table': '全体テーブル',
+    'header.badge.verified': '2023-03 Tableau検証済み',
+    'header.date': '抽出日:',
+    'legend.title': 'レベル基準 & 指標定義',
+    'legend.lv.title': '課金レベル基準（過去30日UCチャージ量）',
+    'legend.metric.title': '指標定義',
+    'legend.churn.def': '課金離脱',
+    'verify.title': 'データ正確性検証 — 2023-03 JP（Tableau基準）',
+    'filter.year': '年度:',
+    'filter.level': 'レベル:',
+    'card.bu': '最大月BU合計',
+    'card.rev': '最大月総Revenue',
+    'card.arppu': '最高Lv_7 ARPPU',
+    'card.churn': '平均月Churn_Pay',
+    'card.churn.sub': 'Non-Paid転換（フィルター基準）',
+    'chart.ov.bu': 'BU推移',
+    'chart.ov.rev': 'Revenue推移（UC）',
+    'chart.ov.type': 'NBU / Repay / Churn 推移（全体合算）',
+    'chart.nbu.def': '<b style="color:#6c8fff">NBU</b> — 当月初回課金ユーザー',
+    'chart.repay.def': '<b style="color:#00c853">Repay</b> — 前月課金 &amp; 当月課金',
+    'chart.churn.def': '<b style="color:#ff6b6b">Churn Pay</b> — 前月課金 → 当月未課金（課金離脱）',
+    'chart.ov.arppu': 'ARPPU推移（UC）',
+    'note.ov': '※ 2023-03行: Tableau CSV値と全件一致確認済 | Revenue/ARPPU単位: UC',
+    'chart.bu.title': 'レベル別BU推移',
+    'chart.rev.title': 'レベル別Revenue推移（UC）',
+    'chart.arppu.title': 'レベル別ARPPU推移（UC）',
+    'chart.bu.share': 'チャージBUシェア推移（レベル別%構成）',
+    'chart.rev.share': 'Revenue（チャージ）シェア推移（レベル別%構成）',
+    'chart.uc.share': 'UC消費シェア推移（レベル別%構成）',
+    'label.bu.share': 'チャージBUシェア（%）',
+    'label.rev.share': 'Revenue（チャージ）シェア（%）',
+    'label.uc.share': 'UC消費シェア（%）',
+    'chart.uc.abs': 'UC消費量推移（UC）',
+    'note.uc': '※ BU%・Revenue（チャージ）%ソース: pubgm_mart.monthly_saleslevel_stat | UC消費%ソース: pubgm_bi.bu_uc_usage_info_monthly | 2025-12および2026-03はUC消費データのみ存在',
+    'note.table': '※ Revenue / ARPPU単位: UC | ✓マーク月: 2023-03, Tableau CSV値と全件一致',
+  }
+};
+
+function setLang(lang) {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[lang][key] !== undefined) el.textContent = I18N[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    if (I18N[lang][key] !== undefined) el.innerHTML = I18N[lang][key];
+  });
+  document.getElementById('btn-ko').classList.toggle('active', lang === 'ko');
+  document.getElementById('btn-ja').classList.toggle('active', lang === 'ja');
 }
 
 // ===== Init =====
