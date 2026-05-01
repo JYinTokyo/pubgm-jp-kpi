@@ -150,6 +150,10 @@
           <tr><td>Return Pay</td><td>(M-n Sales &gt; 0, n ≥ 2) AND (M-1 Sales = 0) AND (M+0 Sales &gt; 0)</td></tr>
           <tr><td>Churn Pay</td><td>(M-1 Sales &gt; 0) AND (M+0 Sales = 0) — <span data-i18n="legend.churn.def">과금 이탈</span></td></tr>
           <hr class="legend-divider">
+          <tr><td>Repay_Rev</td><td><span data-i18n="legend.repayrev.def">Repay 유저(연속 과금)의 Revenue</span></td></tr>
+          <tr><td>RetPay_Rev</td><td><span data-i18n="legend.retpayrev.def">Return Pay 유저(복귀 과금)의 Revenue</span></td></tr>
+          <tr><td>NBU_Rev</td><td><span data-i18n="legend.nburev.def">NBU(첫 결제 유저)의 Revenue</span></td></tr>
+          <hr class="legend-divider">
           <tr><td>ARPPU</td><td>Revenue ÷ BU</td></tr>
         </table>
       </div>
@@ -1446,6 +1450,9 @@ const I18N = {
     'legend.lv.title': '과금 레벨 기준 (지난 30일 UC 충전량)',
     'legend.metric.title': '지표 정의',
     'legend.churn.def': '과금 이탈',
+    'legend.repayrev.def': 'Repay 유저(연속 과금)의 Revenue',
+    'legend.retpayrev.def': 'Return Pay 유저(복귀 과금)의 Revenue',
+    'legend.nburev.def': 'NBU(첫 결제 유저)의 Revenue',
     'verify.title': '데이터 정확성 검증 — 2023-03 JP (Tableau 기준)',
     'filter.year': '연도:',
     'filter.level': '레벨:',
@@ -1488,6 +1495,9 @@ const I18N = {
     'legend.lv.title': '課金レベル基準（過去30日UCチャージ量）',
     'legend.metric.title': '指標定義',
     'legend.churn.def': '課金離脱',
+    'legend.repayrev.def': 'Repayユーザー（連続課金）のRevenue',
+    'legend.retpayrev.def': 'Return Payユーザー（復帰課金）のRevenue',
+    'legend.nburev.def': 'NBU（初回課金ユーザー）のRevenue',
     'verify.title': 'データ正確性検証 — 2023-03 JP（Tableau基準）',
     'filter.year': '年度:',
     'filter.level': 'レベル:',
